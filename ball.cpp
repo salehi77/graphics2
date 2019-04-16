@@ -31,12 +31,12 @@ void setup()
   // glClear(GL_COLOR_BUFFER_BIT);
 }
 
-double pageWidth = 4;
+double pageWidth = 6;
 double pageHeight = 2;
-double height = 2;
+double height = 1.5;
 double alpha = 30;
 double radius = 0.5;
-double yball = 2 + 4 * sin(30 * VAL) + 0.5;
+double yball = height + pageWidth * sin(alpha * VAL) + radius;
 double zball = 0;
 void drawScene()
 {
@@ -62,7 +62,7 @@ void drawScene()
   // cout << sin(30 * VAL) << endl;
 
   glPushMatrix();
-  glTranslated(0, 2 + 2 * sin(30 * VAL), 2 * cos(30 * VAL));
+  glTranslated(0, height + (pageWidth / 2) * sin(alpha * VAL), (pageWidth / 2) * cos(alpha * VAL));
   glRotated(-(90 - alpha), 1, 0, 0);
   glScaled(pageHeight, pageWidth, 0.01);
   glutWireCube(1);
@@ -75,7 +75,7 @@ void drawScene()
   glTranslated(0, yball, zball);
   // glTranslated(0, 2, 4 * cos(30 * VAL));
 
-  glutWireSphere(0.5, 15, 15);
+  glutWireSphere(radius, 15, 15);
 
   glPopMatrix();
 
@@ -85,7 +85,7 @@ void drawScene()
 void animate()
 {
 
-  zball += 0.1;
+  // zball += 0.05;
 
   usleep(animationPeriod * 1000);
 
