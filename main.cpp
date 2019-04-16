@@ -37,10 +37,16 @@ double height = 2;
 double height2 = 2;
 double alpha = 30;
 double t = 0;
-double v0 = 0;
+double v_0 = 0;
+// double prevy = 0;
 int state = 1;
-Page page(4, 2);
-Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0.5);
+// double y0inits[] = {height + page.width * sin(alpha * VAL) + ball.radius + height2, 0, 0};
+double temp;
+Page page(3, 2);
+Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
+
+double y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
+
 void drawScene()
 {
   glMatrixMode(GL_PROJECTION);
@@ -84,22 +90,36 @@ void drawScene()
 
 void animate()
 {
-  t += 0.01;
   if (state == 1)
   {
-    ball.y = -5 * t * t + (height + page.width * sin(alpha * VAL) + ball.radius + height2);
+    double newY = -5 * t * t + y_0;
+    ball.dy = newY - ball.y;
+    ball.y += ball.dy;
 
     if (ball.y <= height + page.width * sin(alpha * VAL) + ball.radius)
     {
       state = 2;
-      v0 = 10 * t;
-      cout << "t= " << t << "  v0= " << v0 << "  y= " << ball.y << endl;
+      v_0 = 10 * t;
+      y_0 = ball.y;
+      t = 0;
+      cout << "t= " << t << "  v= " << v_0 << "  y= " << ball.y << "  y_0= " << (height + page.width * sin(alpha * VAL) + ball.radius + height2) << endl;
     }
   }
   else if (state == 2)
   {
-    // ball.y = -0.25 * t * t + v0 * t + (height + page.width * sin(alpha * VAL) + ball.radius)
+    double newY = -0.25 * t * t + -v_0 * t + y_0;
+    ball.dy = newY - ball.y;
+    ball.y += ball.dy;
+
+    ball.z += (cos(alpha * VAL) / sin(alpha * VAL)) * fabs(ball.dy);
+
+    if (ball.z >= page.width * cos(alpha * VAL))
+    {
+      state = 3;
+    }
   }
+
+  t += 0.01;
 
   usleep(1000);
 
@@ -113,6 +133,8 @@ void keyInput(unsigned char key, int x, int y)
   case ' ':
     t = 0;
     state = 1;
+    ball.z = 0;
+    y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
     break;
 
   default:
