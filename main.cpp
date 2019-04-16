@@ -33,25 +33,25 @@ void setup()
   // glClear(GL_COLOR_BUFFER_BIT);
 }
 
-// double pageWidth = 4;
-// double pageHeight = 2;
 double height = 2;
+double height2 = 2;
 double alpha = 30;
-// double radius = 0.5;
-// double yball = height + pageWidth * sin(alpha * VAL) + radius;
-// double zball = 0;
-Page page(6, 3);
-Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5, 0, 0.5);
+double t = 0;
+double v0 = 0;
+int state = 1;
+Page page(4, 2);
+Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0.5);
 void drawScene()
 {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(80.0, 64.0 / 48.0, 0.1, 100);
+  // gluPerspective()
   // glOrtho(-2.0 * 64 / 48.0, 2.0 * 64 / 48.0, -2.0, 2.0, 0.1, 100);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(4, 5, 1, 0, 4, 1, 0.0, 1.0, 0.0);
+  gluLookAt(8, 9, 2, 0, 0, 0, 0.0, 1.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
   glColor3d(1, 1, 0);
 
@@ -63,8 +63,6 @@ void drawScene()
   axis(2, false);
   glPopMatrix();
 
-  // cout << sin(30 * VAL) << endl;
-
   glPushMatrix();
   glTranslated(0, height + (page.width / 2) * sin(alpha * VAL), (page.width / 2) * cos(alpha * VAL));
   glRotated(-(90 - alpha), 1, 0, 0);
@@ -75,32 +73,62 @@ void drawScene()
   glColor3d(0, 0, 1);
 
   glPushMatrix();
-  // glTranslated(ball.x, ball.y, ball.z);
-  glTranslated(ball.x, height, page.width * cos(alpha * VAL) + ball.radius);
+  glTranslated(ball.x, ball.y, ball.z);
   glutWireSphere(ball.radius, 15, 15);
   glPopMatrix();
 
   glFlush();
+
+  glutSwapBuffers();
 }
 
 void animate()
 {
+  t += 0.01;
+  if (state == 1)
+  {
+    ball.y = -5 * t * t + (height + page.width * sin(alpha * VAL) + ball.radius + height2);
 
-  // ball.x -= 0.05;
+    if (ball.y <= height + page.width * sin(alpha * VAL) + ball.radius)
+    {
+      state = 2;
+      v0 = 10 * t;
+      cout << "t= " << t << "  v0= " << v0 << "  y= " << ball.y << endl;
+    }
+  }
+  else if (state == 2)
+  {
+    // ball.y = -0.25 * t * t + v0 * t + (height + page.width * sin(alpha * VAL) + ball.radius)
+  }
 
-  usleep(animationPeriod * 1000);
+  usleep(1000);
 
   glutPostRedisplay();
+}
+
+void keyInput(unsigned char key, int x, int y)
+{
+  switch (key)
+  {
+  case ' ':
+    t = 0;
+    state = 1;
+    break;
+
+  default:
+    break;
+  }
 }
 
 int main(int argc, char *argv[])
 {
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize(500, 500);
   glutInitWindowPosition(1400, 400);
   glutCreateWindow("window");
   glutDisplayFunc(drawScene);
+  glutKeyboardFunc(keyInput);
   glutIdleFunc(animate);
 
   glutMainLoop();
