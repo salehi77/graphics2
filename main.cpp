@@ -29,8 +29,6 @@ void setup()
 {
   glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
   glViewport(0, 0, 640, 480);
-
-  // glClear(GL_COLOR_BUFFER_BIT);
 }
 
 double height = 2;
@@ -38,11 +36,12 @@ double height2 = 2;
 double alpha = 30;
 double t = 0;
 double v_0 = 0;
+double z_0;
 // double prevy = 0;
 int state = 1;
 // double y0inits[] = {height + page.width * sin(alpha * VAL) + ball.radius + height2, 0, 0};
 double temp;
-Page page(3, 2);
+Page page(4, 2);
 Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
 
 double y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
@@ -52,7 +51,6 @@ void drawScene()
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(80.0, 64.0 / 48.0, 0.1, 100);
-  // gluPerspective()
   // glOrtho(-2.0 * 64 / 48.0, 2.0 * 64 / 48.0, -2.0, 2.0, 0.1, 100);
 
   glMatrixMode(GL_MODELVIEW);
@@ -99,15 +97,15 @@ void animate()
     if (ball.y <= height + page.width * sin(alpha * VAL) + ball.radius)
     {
       state = 2;
+      cout << "t= " << t << "  v= " << (10 * t) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << endl;
       v_0 = 10 * t;
       y_0 = ball.y;
       t = 0;
-      cout << "t= " << t << "  v= " << v_0 << "  y= " << ball.y << "  y_0= " << (height + page.width * sin(alpha * VAL) + ball.radius + height2) << endl;
     }
   }
   else if (state == 2)
   {
-    double newY = -0.25 * t * t + -v_0 * t + y_0;
+    double newY = -5 * sin(alpha * VAL) * t * t + -v_0 * t + y_0;
     ball.dy = newY - ball.y;
     ball.y += ball.dy;
 
@@ -116,6 +114,22 @@ void animate()
     if (ball.z >= page.width * cos(alpha * VAL))
     {
       state = 3;
+      cout << "t= " << t << "  v= " << (10 * sin(alpha * VAL) * t + v_0) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << "  z= " << ball.z << endl;
+      v_0 = 10 * sin(alpha * VAL) * t + v_0;
+      y_0 = ball.y;
+      z_0 = ball.z;
+      t = 0;
+    }
+  }
+  else if (state == 3)
+  {
+    ball.z = v_0 * cos(alpha * VAL) * t + z_0;
+
+    ball.y = -5 * t * t - v_0 * sin(alpha * VAL) * t + y_0;
+
+    if (ball.y <= 0)
+    {
+      state = 4;
     }
   }
 
