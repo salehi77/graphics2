@@ -37,10 +37,8 @@ double alpha = 30;
 double t = 0;
 double v_0 = 0;
 double z_0;
-// double prevy = 0;
+double xangle = 0;
 int state = 1;
-// double y0inits[] = {height + page.width * sin(alpha * VAL) + ball.radius + height2, 0, 0};
-double temp;
 Page page(4, 2);
 Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
 
@@ -78,6 +76,8 @@ void drawScene()
 
   glPushMatrix();
   glTranslated(ball.x, ball.y, ball.z);
+  // state = 4;
+  glRotated(xangle, 1, 0, 0);
   glutWireSphere(ball.radius, 15, 15);
   glPopMatrix();
 
@@ -109,7 +109,10 @@ void animate()
     ball.dy = newY - ball.y;
     ball.y += ball.dy;
 
-    ball.z += (cos(alpha * VAL) / sin(alpha * VAL)) * fabs(ball.dy);
+    ball.dz = (cos(alpha * VAL) / sin(alpha * VAL)) * fabs(ball.dy);
+    ball.z += ball.dz;
+
+    xangle += (ball.dz / ball.radius) * (180 / PI);
 
     if (ball.z >= page.width * cos(alpha * VAL))
     {
@@ -123,7 +126,11 @@ void animate()
   }
   else if (state == 3)
   {
-    ball.z = v_0 * cos(alpha * VAL) * t + z_0;
+    double newZ = v_0 * cos(alpha * VAL) * t + z_0;
+    ball.dz = newZ - ball.z;
+    ball.z += ball.dz;
+
+    xangle += (ball.dz / ball.radius) * (180 / PI);
 
     ball.y = -5 * t * t - v_0 * sin(alpha * VAL) * t + y_0;
 
@@ -149,6 +156,11 @@ void keyInput(unsigned char key, int x, int y)
     state = 1;
     ball.z = 0;
     y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
+    break;
+
+  case 'x':
+    xangle++;
+    cout << xangle << endl;
     break;
 
   default:
