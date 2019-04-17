@@ -1,7 +1,7 @@
 #include <GL/freeglut.h>
 #include <math.h>
 #include <iostream>
-#include <unistd.h>
+// #include <unistd.h>
 #include "ball.h"
 #include "page.h"
 using namespace std;
@@ -63,7 +63,7 @@ void drawScene()
 
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // x and y axis
+  // x and z axis
   glColor3d(1, 0, 0);
   glPushMatrix();
   axis(2.5);
@@ -98,20 +98,17 @@ void animate()
 {
   if (state == 1) // free fall
   {
-    double newY = -5 * t * t + y_0;
-    ball.dy = newY - ball.y;
-    ball.y += ball.dy;
+    ball.y = -5 * t * t + y_0;
 
     if (ball.y <= height + page.width * sin(alpha * VAL) + ball.radius)
     {
       state = 2;
-      // cout << "t= " << t << "  v= " << (10 * t) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << endl;
       v_0 = 10 * t;
       y_0 = ball.y;
       t = 0;
     }
   }
-  else if (state == 2) // on page
+  else if (state == 2) // over page
   {
     double newY = -5 * sin(alpha * VAL) * t * t + -v_0 * t + y_0;
     ball.dy = newY - ball.y;
@@ -125,7 +122,6 @@ void animate()
     if (ball.z >= page.width * cos(alpha * VAL))
     {
       state = 3;
-      // cout << "t= " << t << "  v= " << (10 * sin(alpha * VAL) * t + v_0) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << "  z= " << ball.z << endl;
       v_0 = 10 * sin(alpha * VAL) * t + v_0;
       y_0 = ball.y;
       z_0 = ball.z;
@@ -134,13 +130,13 @@ void animate()
   }
   else if (state == 3) // projectile
   {
+    ball.y = -5 * t * t - v_0 * sin(alpha * VAL) * t + y_0;
+
     double newZ = v_0 * cos(alpha * VAL) * t + z_0;
     ball.dz = newZ - ball.z;
     ball.z += ball.dz;
 
     xangle += (ball.dz / ball.radius) * (180 / PI);
-
-    ball.y = -5 * t * t - v_0 * sin(alpha * VAL) * t + y_0;
 
     if (ball.y <= 0)
     {
@@ -150,7 +146,8 @@ void animate()
 
   t += 0.01;
 
-  usleep(1000);
+  // usleep(1000);
+  Sleep(animationPeriod);
 
   glutPostRedisplay();
 }
@@ -171,7 +168,7 @@ void keyInput(unsigned char key, int x, int y)
     exit(0);
     break;
 
-  case 'o':
+  case 'f':
     lookat.x = 0;
     lookat.y = height;
     lookat.z = (page.width) * cos(alpha * VAL);
@@ -180,7 +177,7 @@ void keyInput(unsigned char key, int x, int y)
     eye.z = 12;
     glutPostRedisplay();
     break;
-  case 'f':
+  case 'o':
     lookat.x = 0;
     lookat.y = height + (page.width / 2) * sin(alpha * VAL);
     lookat.z = (page.width / 2) * cos(alpha * VAL);
@@ -202,14 +199,24 @@ void resize(int w, int h)
 
 int main(int argc, char *argv[])
 {
+  // glutInitContextVersion(4, 3);
+  // glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
+
+  cout << "press s to start" << endl;
+  cout << "press e to end" << endl;
+  cout << "press f to front view" << endl;
+  cout << "press o to side view" << endl;
+
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize(500, 500);
   glutInitWindowPosition(1400, 400);
-  glutCreateWindow("window");
+  glutCreateWindow("ball");
   glutDisplayFunc(drawScene);
   glutKeyboardFunc(keyInput);
   glutReshapeFunc(resize);
+
+  setup();
 
   glutMainLoop();
 }
