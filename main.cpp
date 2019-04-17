@@ -5,72 +5,75 @@
 #include "ball.h"
 #include "page.h"
 using namespace std;
-struct Eye
+
+#define PI 3.14159265
+#define VAL PI / 180.0
+struct Point3d
 {
   double x, y, z;
 };
 
-int animationPeriod = 100;
-#define PI 3.14159265
-#define VAL PI / 180.0
+int state = 1;
 
-void axis(double length, bool flag)
+double height = 4;
+double height2 = 3;
+double alpha = 30;
+
+Page page(4, 2);
+Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
+
+double t = 0;
+double v_0 = 0;
+double y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
+double z_0 = 0;
+double xangle = 0;
+
+Point3d lookat = {0, height + (page.width / 2) * sin(alpha *VAL), (page.width / 2) * cos(alpha *VAL)};
+Point3d eye = {11, 11, 2};
+
+void axis(double length)
 {
   glPushMatrix();
   glBegin(GL_LINES);
   glVertex3d(0, 0, 0);
   glVertex3d(0, 0, length);
   glEnd();
-  if (flag)
-  {
-    glTranslated(0, 0, length - 0.2);
-    glutWireCone(0.04, 0.2, 12, 9);
-  }
+  glTranslated(0, 0, length - 0.4);
+  glutWireCone(0.04, 0.4, 12, 9);
   glPopMatrix();
 }
 
 void setup()
 {
-  glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-  glViewport(0, 0, 640, 480);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glViewport(0, 0, 500, 500);
 }
-
-double height = 4;
-double height2 = 3;
-double alpha = 30;
-double t = 0;
-double v_0 = 0;
-double z_0;
-double xangle = 0;
-int state = 1;
-Page page(4, 2);
-Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
-
-double y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
-Eye lookat = {0, height + (page.width / 2) * sin(alpha *VAL), (page.width / 2) * cos(alpha *VAL)};
-Eye eye = {11, 11, 2};
 
 void drawScene()
 {
+  // Perspective Camera
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(50.0, 64.0 / 48.0, 0.1, 100);
-  // glOrtho(-2.0 * 64 / 48.0, 2.0 * 64 / 48.0, -2.0, 2.0, 0.1, 100);
 
+  // Camera Position
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(eye.x, eye.y, eye.z, lookat.x, lookat.y, lookat.z, 0.0, 1.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glColor3d(1, 1, 0);
 
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  // x and y axis
+  glColor3d(1, 0, 0);
   glPushMatrix();
-  axis(2, true);
+  axis(2.5);
   glRotated(90, 0, 1, 0);
-  axis(2, false);
+  axis(2.5);
   glRotated(-90, 1, 0, 0);
-  axis(2, false);
   glPopMatrix();
 
+  // Page
+  glColor3d(0, 1, 0);
   glPushMatrix();
   glTranslated(0, height + (page.width / 2) * sin(alpha * VAL), (page.width / 2) * cos(alpha * VAL));
   glRotated(-(90 - alpha), 1, 0, 0);
@@ -78,11 +81,10 @@ void drawScene()
   glutWireCube(1);
   glPopMatrix();
 
+  // Ball
   glColor3d(0, 0, 1);
-
   glPushMatrix();
   glTranslated(ball.x, ball.y, ball.z);
-  // state = 4;
   glRotated(xangle, 1, 0, 0);
   glutWireSphere(ball.radius, 15, 15);
   glPopMatrix();
@@ -94,7 +96,7 @@ void drawScene()
 
 void animate()
 {
-  if (state == 1)
+  if (state == 1) // free fall
   {
     double newY = -5 * t * t + y_0;
     ball.dy = newY - ball.y;
@@ -103,13 +105,13 @@ void animate()
     if (ball.y <= height + page.width * sin(alpha * VAL) + ball.radius)
     {
       state = 2;
-      cout << "t= " << t << "  v= " << (10 * t) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << endl;
+      // cout << "t= " << t << "  v= " << (10 * t) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << endl;
       v_0 = 10 * t;
       y_0 = ball.y;
       t = 0;
     }
   }
-  else if (state == 2)
+  else if (state == 2) // on page
   {
     double newY = -5 * sin(alpha * VAL) * t * t + -v_0 * t + y_0;
     ball.dy = newY - ball.y;
@@ -123,14 +125,14 @@ void animate()
     if (ball.z >= page.width * cos(alpha * VAL))
     {
       state = 3;
-      cout << "t= " << t << "  v= " << (10 * sin(alpha * VAL) * t + v_0) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << "  z= " << ball.z << endl;
+      // cout << "t= " << t << "  v= " << (10 * sin(alpha * VAL) * t + v_0) << "  v0= " << v_0 << "  y= " << ball.y << "  y0= " << y_0 << "  z= " << ball.z << endl;
       v_0 = 10 * sin(alpha * VAL) * t + v_0;
       y_0 = ball.y;
       z_0 = ball.z;
       t = 0;
     }
   }
-  else if (state == 3)
+  else if (state == 3) // projectile
   {
     double newZ = v_0 * cos(alpha * VAL) * t + z_0;
     ball.dz = newZ - ball.z;
@@ -142,7 +144,7 @@ void animate()
 
     if (ball.y <= 0)
     {
-      state = 4;
+      glutIdleFunc(NULL);
     }
   }
 
@@ -157,32 +159,16 @@ void keyInput(unsigned char key, int x, int y)
 {
   switch (key)
   {
-  case ' ':
+  case 's':
+    glutIdleFunc(animate);
     t = 0;
     state = 1;
     ball.z = 0;
     y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
-    cout << eye.x << " " << eye.y << " " << eye.z << " "
-         << " " << endl;
     break;
 
-  case 'x':
-    eye.x += 0.5;
-    break;
-  case 'X':
-    eye.x -= 0.5;
-    break;
-  case 'y':
-    eye.y += 0.5;
-    break;
-  case 'Y':
-    eye.y -= 0.5;
-    break;
-  case 'z':
-    eye.z += 0.5;
-    break;
-  case 'Z':
-    eye.z -= 0.5;
+  case 'e':
+    exit(0);
     break;
 
   case 'o':
@@ -192,6 +178,7 @@ void keyInput(unsigned char key, int x, int y)
     eye.x = 0;
     eye.y = 19;
     eye.z = 12;
+    glutPostRedisplay();
     break;
   case 'f':
     lookat.x = 0;
@@ -200,6 +187,7 @@ void keyInput(unsigned char key, int x, int y)
     eye.x = 11;
     eye.y = 11;
     eye.z = 2;
+    glutPostRedisplay();
     break;
 
   default:
@@ -210,12 +198,6 @@ void keyInput(unsigned char key, int x, int y)
 void resize(int w, int h)
 {
   glViewport(0, 0, w, h);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glFrustum(-5.0, 5.0, -5.0, 5.0, 5.0, 100.0);
-  gluLookAt(0.0, 0.0, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-  glMatrixMode(GL_MODELVIEW);
 }
 
 int main(int argc, char *argv[])
@@ -227,7 +209,6 @@ int main(int argc, char *argv[])
   glutCreateWindow("window");
   glutDisplayFunc(drawScene);
   glutKeyboardFunc(keyInput);
-  glutIdleFunc(animate);
   glutReshapeFunc(resize);
 
   glutMainLoop();
