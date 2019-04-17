@@ -5,6 +5,10 @@
 #include "ball.h"
 #include "page.h"
 using namespace std;
+struct Eye
+{
+  double x, y, z;
+};
 
 int animationPeriod = 100;
 #define PI 3.14159265
@@ -31,8 +35,8 @@ void setup()
   glViewport(0, 0, 640, 480);
 }
 
-double height = 2;
-double height2 = 2;
+double height = 4;
+double height2 = 3;
 double alpha = 30;
 double t = 0;
 double v_0 = 0;
@@ -43,17 +47,19 @@ Page page(4, 2);
 Ball ball(0, height + page.width * sin(alpha * VAL) + 0.5 + height2, 0, 0, 0, 0, 0.5);
 
 double y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
+Eye lookat = {0, height + (page.width / 2) * sin(alpha *VAL), (page.width / 2) * cos(alpha *VAL)};
+Eye eye = {11, 11, 2};
 
 void drawScene()
 {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(80.0, 64.0 / 48.0, 0.1, 100);
+  gluPerspective(50.0, 64.0 / 48.0, 0.1, 100);
   // glOrtho(-2.0 * 64 / 48.0, 2.0 * 64 / 48.0, -2.0, 2.0, 0.1, 100);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(8, 9, 2, 0, 0, 0, 0.0, 1.0, 0.0);
+  gluLookAt(eye.x, eye.y, eye.z, lookat.x, lookat.y, lookat.z, 0.0, 1.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT);
   glColor3d(1, 1, 0);
 
@@ -156,16 +162,60 @@ void keyInput(unsigned char key, int x, int y)
     state = 1;
     ball.z = 0;
     y_0 = height + page.width * sin(alpha * VAL) + ball.radius + height2;
+    cout << eye.x << " " << eye.y << " " << eye.z << " "
+         << " " << endl;
     break;
 
   case 'x':
-    xangle++;
-    cout << xangle << endl;
+    eye.x += 0.5;
+    break;
+  case 'X':
+    eye.x -= 0.5;
+    break;
+  case 'y':
+    eye.y += 0.5;
+    break;
+  case 'Y':
+    eye.y -= 0.5;
+    break;
+  case 'z':
+    eye.z += 0.5;
+    break;
+  case 'Z':
+    eye.z -= 0.5;
+    break;
+
+  case 'o':
+    lookat.x = 0;
+    lookat.y = height;
+    lookat.z = (page.width) * cos(alpha * VAL);
+    eye.x = 0;
+    eye.y = 19;
+    eye.z = 12;
+    break;
+  case 'f':
+    lookat.x = 0;
+    lookat.y = height + (page.width / 2) * sin(alpha * VAL);
+    lookat.z = (page.width / 2) * cos(alpha * VAL);
+    eye.x = 11;
+    eye.y = 11;
+    eye.z = 2;
     break;
 
   default:
     break;
   }
+}
+
+void resize(int w, int h)
+{
+  glViewport(0, 0, w, h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glFrustum(-5.0, 5.0, -5.0, 5.0, 5.0, 100.0);
+  gluLookAt(0.0, 0.0, 25.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+  glMatrixMode(GL_MODELVIEW);
 }
 
 int main(int argc, char *argv[])
@@ -178,6 +228,7 @@ int main(int argc, char *argv[])
   glutDisplayFunc(drawScene);
   glutKeyboardFunc(keyInput);
   glutIdleFunc(animate);
+  glutReshapeFunc(resize);
 
   glutMainLoop();
 }
